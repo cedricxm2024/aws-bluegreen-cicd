@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing Terraform..."
+      - curl -LO https://releases.hashicorp.com/terraform/1.13.4/terraform_1.13.4_linux_amd64.zip
+      - unzip terraform_1.13.4_linux_amd64.zip
+      - mv terraform /usr/local/bin/
+      - terraform --version
+  pre_build:
+    commands:
+      - echo "Initializing Terraform..."
+      - terraform init -input=false
+  build:
+    commands:
+      - echo "Checking for drift..."
+      # -detailed-exitcode: 0=no changes, 1=error, 2=changes detected
+      - terraform plan -detailed-exitcode -out=tfplan -input=false || true
+      - |
+        if [ $? -eq 2 ]; then
+          echo "Drift detected!"
+          exit 1
+        else
+          echo "No drift detected."
+        fi

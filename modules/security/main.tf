@@ -51,3 +51,30 @@ resource "aws_security_group" "app_sg" {
 
   tags = { Name = "${var.name_prefix}-app-sg" }
 }
+resource "aws_cloudtrail" "main" {
+  name                          = "${var.project}-trail"
+  s3_bucket_name                = aws_s3_bucket.audit_bucket.id
+  include_global_service_events = true
+  is_multi_region_trail         = true
+  enable_logging                = true
+}
+
+resource "aws_s3_bucket" "audit_bucket" {
+  bucket = "${var.project}-audit-logs"
+  acl    = "private"
+  versioning { enabled = true }
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default { sse_algorithm = "AES256" }
+    }
+  }
+}
+resource "aws_sns_topic" "monitoring" {
+  name = "${var.project}-monitoring-topic"
+}
+
+resource "aws_sns_topic_subscription" "email" {
+  topic_arn = aws_sns_topic.monitoring.arn
+  protocol  = "email"
+  endpoint  = "cedricxm@hotmail.com" # Replace with actual email
+}
