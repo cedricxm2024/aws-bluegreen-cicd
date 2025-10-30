@@ -1,0 +1,14 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /tmp/app
+hooks:
+  AfterInstall:
+    - location: scripts/restart_web.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/verify_healthy.sh
+      timeout: 300
+      runas: root

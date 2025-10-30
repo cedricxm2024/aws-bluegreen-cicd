@@ -35,3 +35,19 @@ resource "aws_lb_listener" "http" {
     target_group_arn = aws_lb_target_group.app_tg.arn
   }
 }
+resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_hosts" {
+  alarm_name          = "${var.project}-alb-unhealthy-hosts"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "UnhealthyHostCount"
+  namespace           = "AWS/ApplicationELB"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 0
+  alarm_description   = "ALB has unhealthy targets"
+  alarm_actions       = [aws_sns_topic.monitoring.arn]
+  dimensions = {
+    TargetGroup = aws_lb_target_group.main.id
+    LoadBalancer = aws_lb.main.id
+  }
+}
